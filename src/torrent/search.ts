@@ -6,9 +6,12 @@ import {
   searchItorrent,
 } from "./itorrent.js";
 import { searchJackett } from "./jackett.js";
-import { NcoreCategory, searchNcore } from "./ncore.js";
+import { NcoreCategory, searchNcore } from "./ncore/ncore.js";
 import { searchYts } from "./yts.js";
 import { InsaneCategory, searchInsane } from "./insane.js";
+import {getTorrents} from "eztv-crawler";
+import {getGenre, rawGetTorrents} from "./ncore/getTorrents.js";
+import {convertTorrentsToStreams} from "./ncore/convertTorrentToStream.js";
 
 export type TorrentCategory = "movie" | "show";
 
@@ -52,6 +55,9 @@ export const searchTorrents = async (
   query: string,
   options?: TorrentSearchOptions
 ) => {
+
+
+  const [imdbId, season, episode] = query.split(":");
   const searchAllCategories = !options?.categories?.length;
   const searchAllSources = !options?.sources?.length;
 
@@ -70,7 +76,7 @@ export const searchTorrents = async (
 
     promises.push(
       searchJackett(
-        query,
+          imdbId,
         Array.from(categories),
         options?.jackett?.url,
         options?.jackett?.apiKey
@@ -97,10 +103,8 @@ export const searchTorrents = async (
 
     promises.push(
       searchNcore(
-        query,
-        Array.from(categories),
-        options?.ncore?.user,
-        options?.ncore?.password
+          imdbId,
+        Array.from(categories)
       )
     );
   }
@@ -128,7 +132,7 @@ export const searchTorrents = async (
 
     promises.push(
       searchInsane(
-        query,
+        imdbId,
         Array.from(categories),
         options?.insane?.user,
         options?.insane?.password
@@ -158,18 +162,17 @@ export const searchTorrents = async (
 
   if (options?.sources?.includes("yts") || searchAllSources) {
     if (options?.categories?.includes("movie") || searchAllCategories) {
-      promises.push(searchYts(query));
+      promises.push(searchYts(imdbId));
     }
   }
 
   if (options?.sources?.includes("eztv") || searchAllSources) {
     if (options?.categories?.includes("show") || searchAllCategories) {
-      promises.push(searchEztv(query));
+      promises.push(searchEztv(query[0]));
     }
   }
 
   const results = (await Promise.all(promises)).flat();
-
   console.log(`Search: got ${results.length} results for ${query}`);
 
   return results;

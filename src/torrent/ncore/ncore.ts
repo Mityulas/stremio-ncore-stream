@@ -1,12 +1,11 @@
 import axios from "axios";
 import { wrapper } from "axios-cookiejar-support";
 import * as cheerio from "cheerio";
-import { CookieJar } from "tough-cookie";
-import { TorrentSearchResult } from "./search.js";
-import { isImdbId } from "../utils/imdb.js";
+import { TorrentSearchResult } from "../search.js";
+import { isImdbId } from "../../utils/imdb.js";
+import { config } from "../../config/config.js";
+import {login} from "./login.js";
 
-const NCORE_USER = process.env.NCORE_USER;
-const NCORE_PASSWORD = process.env.NCORE_PASSWORD;
 
 export enum NcoreCategory {
   Film_SD_HU = "xvid_hun",
@@ -21,27 +20,12 @@ export enum NcoreCategory {
 
 export const searchNcore = async (
   searchQuery: string,
-  categories: NcoreCategory[],
-  ncoreUser?: string,
-  ncorePassword?: string
+  categories: NcoreCategory[]
 ): Promise<TorrentSearchResult[]> => {
   try {
-    const user = ncoreUser || NCORE_USER;
-    const password = ncorePassword || NCORE_PASSWORD;
-
-    if (!user || !password) return [];
-
-    const jar = new CookieJar();
+    const cookie = await login();
     // @ts-ignore
-    const client = wrapper(axios.create({ jar, baseURL: "https://ncore.pro" }));
-
-    const formData = new FormData();
-    formData.append("nev", user);
-    formData.append("pass", password);
-    formData.append("set_lang", "hu");
-    formData.append("submitted", "1");
-    await client.post("/login.php", formData);
-
+    const client = wrapper(axios.create({baseURL: "https://ncore.pro"}));
     const torrents: TorrentSearchResult[] = [];
 
     let page = 0;
@@ -63,7 +47,10 @@ export const searchNcore = async (
         });
 
         const link = `/torrents.php?${params.toString()}}`;
-        const torrentsPage = await client.get(link);
+        const torrentsPage = await client.get(link,{
+              headers: {cookie},
+            }
+        );
         const $ = cheerio.load(torrentsPage.data);
 
         const rssUrl = $("link[rel=alternate]").attr("href");

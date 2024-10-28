@@ -12,6 +12,8 @@ import { getTitles } from "../utils/imdb.js";
 import { guessLanguage } from "../utils/language.js";
 import { guessQuality } from "../utils/quality.js";
 import { isFileNameMatch, isTorrentNameMatch } from "../utils/shows.js";
+import {getGenre, rawGetTorrents} from "../torrent/ncore/getTorrents.js";
+import {convertTorrentsToStreams} from "../torrent/ncore/convertTorrentToStream.js";
 
 interface HandlerArgs {
   type: string;
@@ -40,6 +42,33 @@ interface HandlerArgs {
 }
 
 export const streamHandler = async ({ type, id, config, req }: HandlerArgs) => {
+  const categories: TorrentCategory[] = [];
+  const sources: TorrentSource[] = [];
+  const [imdbId, season, episode] = id.split(":");
+  if (config.enableNcore === "on") sources.push("ncore");
+  if (type === "movie") categories.push("movie");
+  if (type === "series") categories.push("show");
+  const result2 =  await rawGetTorrents(id, {
+    categories,
+    sources,
+    jackett: {
+      url: config.jackettUrl,
+      apiKey: config.jackettKey,
+    },
+    ncore: {
+      user: config.nCoreUser,
+      password: config.nCorePassword,
+    },
+    insane: {
+      user: config.insaneUser,
+      password: config.insanePassword,
+    },
+  });
+  const genre = await getGenre(imdbId);
+  const streamEndpoint = `${req.protocol}://${req.get("host")}/stream`;
+  const streams = await convertTorrentsToStreams( result2, genre, streamEndpoint );
+  console.log(streams);
+  /*
   let torrents: TorrentSearchResult[] = [];
 
   const categories: TorrentCategory[] = [];
@@ -56,7 +85,7 @@ export const streamHandler = async ({ type, id, config, req }: HandlerArgs) => {
 
   const [imdbId, season, episode] = id.split(":");
 
-  const queries = [imdbId];
+  const queries = [id];
   if (config.searchByTitle === "on") queries.push(...(await getTitles(imdbId)));
 
   torrents = (
@@ -115,9 +144,9 @@ export const streamHandler = async ({ type, id, config, req }: HandlerArgs) => {
     return true;
   });
 
-  streams.sort((a, b) => b.score - a.score);
+  streams.sort((a, b) => a.score - b.score); */
 
-  return { streams: streams.map((stream) => stream.stream) };
+  return { streams: streams.map((stream) => stream) };
 };
 
 const dedupeTorrents = (torrents: TorrentSearchResult[]) => {

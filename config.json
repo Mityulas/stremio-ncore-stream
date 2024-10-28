@@ -1,0 +1,27 @@
+{
+	"download_dir": "/home/logon212594292/torrent",
+	"ncore": {
+		"url": "https://ncore.pro",
+		"username": "",
+		"password": "",
+		"delete_torrents_after_hitnrun": {
+			"enabled": false,
+			"cron": "* * * * *"
+		}
+	},
+	"users": [
+		{
+			"username": "McLosh",
+			"password": "asdasdasd",
+			"role": "admin",
+			"preferences": {
+				"first_preferred_lang": "Hungarian",
+				"second_preferred_lang": "English",
+				"preferred_resolutions": ["480P"]
+			}
+		}
+	],
+	"https": {
+		"method": 1
+	}
+}

@@ -9,6 +9,7 @@ import {
   streamOpened,
 } from "./torrent/webtorrent.js";
 import { getStreamingMimeType } from "./utils/file.js";
+import {downloadTorrent} from "./helpers/downloadTorrentFile.js";
 
 export const router = Router();
 
@@ -50,8 +51,8 @@ router.get("/torrent/:torrentUri", async (req, res) => {
 
 router.get("/stream/:torrentUri/:filePath", async (req, res) => {
   const { torrentUri, filePath } = req.params;
-
-  const torrent = await getOrAddTorrent(torrentUri);
+  let fileBaseTorrent = await downloadTorrent(torrentUri);
+  const torrent = await getOrAddTorrent(fileBaseTorrent);
   if (!torrent) return res.status(500).send("Failed to add torrent");
 
   const file = getFile(torrent, filePath);

@@ -4,6 +4,7 @@ import os from "os";
 import path from "path";
 import WebTorrent, { Torrent } from "webtorrent";
 import { getReadableDuration } from "../utils/file.js";
+import {config} from "../config/config.js";
 
 interface FileInfo {
   name: string;
@@ -37,14 +38,7 @@ interface ActiveTorrentInfo extends TorrentInfo {
 
 // Directory to store downloaded files (default OS temp directory)
 const DOWNLOAD_DIR =
-  process.env.DOWNLOAD_DIR || path.join(os.tmpdir(), "torrent-stream-server");
-
-// Keep downloaded files after all streams are closed (default false)
-const KEEP_DOWNLOADED_FILES = process.env.KEEP_DOWNLOADED_FILES
-  ? process.env.KEEP_DOWNLOADED_FILES === "true"
-  : false;
-
-if (!KEEP_DOWNLOADED_FILES) fs.emptyDirSync(DOWNLOAD_DIR);
+    config().download_dir || path.join(os.tmpdir(), "torrent-stream-server");
 
 // Maximum number of connections per torrent (default 50)
 const MAX_CONNS_PER_TORRENT = Number(process.env.MAX_CONNS_PER_TORRENT) || 50;
@@ -114,13 +108,13 @@ export const getStats = () => ({
   })),
 });
 
-export const getOrAddTorrent = (uri: string) =>
+export const getOrAddTorrent = (uri: string, needDestroyTimer: boolean = true) =>
   new Promise<Torrent | undefined>((resolve) => {
     const torrent = streamClient.add(
       uri,
       {
         path: DOWNLOAD_DIR,
-        destroyStoreOnDestroy: !KEEP_DOWNLOADED_FILES,
+        destroyStoreOnDestroy: true,
         // @ts-ignore
         deselect: true,
       },
@@ -130,10 +124,13 @@ export const getOrAddTorrent = (uri: string) =>
       }
     );
 
-    const timeout = setTimeout(() => {
-      torrent.destroy();
-      resolve(undefined);
-    }, TORRENT_TIMEOUT);
+      const timeout = setTimeout(() => {
+        if (needDestroyTimer) {
+          torrent.destroy();
+          resolve(undefined);
+          console.log(`Torrent ${torrent.name} - ${torrent.infoHash} destroyed.`);
+        }
+      }, TORRENT_TIMEOUT);
   });
 
 export const getFile = (torrent: Torrent, path: string) =>
@@ -201,14 +198,17 @@ export const streamClosed = (hash: string, fileName: string) => {
   let timeout = timeouts.get(hash);
   if (timeout) return;
 
-  timeout = setTimeout(async () => {
-    const torrent = await streamClient.get(hash);
-    // @ts-ignore
-    torrent?.destroy(undefined, () => {
-      console.log(`Removed torrent: ${torrent.name}`);
-      timeouts.delete(hash);
-    });
-  }, SEED_TIME);
-
   timeouts.set(hash, timeout);
 };
+
+
+export const deleteTorrent = async (hash: string) => {
+  openStreams.delete(hash);
+  const torrent = await streamClient.get(hash);
+  // @ts-ignore
+  torrent?.destroy(undefined, () => {
+    console.log(`Removed torrent: ${torrent.name}`);
+    timeouts.delete(hash);
+  });
+  return torrent;
+}

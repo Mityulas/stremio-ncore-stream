@@ -1,17 +1,11 @@
-import { Request } from "express";
+import {Request} from "express";
 import Stremio from "stremio-addon-sdk";
-import {
-  TorrentCategory,
-  TorrentSearchResult,
-  TorrentSource,
-  searchTorrents,
-} from "../torrent/search.js";
-import { getTorrentInfo } from "../torrent/webtorrent.js";
-import { getReadableSize, isSubtitleFile, isVideoFile } from "../utils/file.js";
-import { getTitles } from "../utils/imdb.js";
-import { guessLanguage } from "../utils/language.js";
-import { guessQuality } from "../utils/quality.js";
-import { isFileNameMatch, isTorrentNameMatch } from "../utils/shows.js";
+import {TorrentCategory, TorrentSearchResult, TorrentSource,} from "../torrent/search.js";
+import {getTorrentInfo} from "../torrent/webtorrent.js";
+import {getReadableSize, isSubtitleFile, isVideoFile} from "../utils/file.js";
+import {guessLanguage} from "../utils/language.js";
+import {guessQuality} from "../utils/quality.js";
+import {isFileNameMatch} from "../utils/shows.js";
 import {getGenre, rawGetTorrents} from "../torrent/ncore/getTorrents.js";
 import {convertTorrentsToStreams} from "../torrent/ncore/convertTorrentToStream.js";
 
@@ -49,20 +43,7 @@ export const streamHandler = async ({ type, id, config, req }: HandlerArgs) => {
   if (type === "movie") categories.push("movie");
   if (type === "series") categories.push("show");
   const result2 =  await rawGetTorrents(id, {
-    categories,
-    sources,
-    jackett: {
-      url: config.jackettUrl,
-      apiKey: config.jackettKey,
-    },
-    ncore: {
-      user: config.nCoreUser,
-      password: config.nCorePassword,
-    },
-    insane: {
-      user: config.insaneUser,
-      password: config.insanePassword,
-    },
+    categories
   });
   const genre = await getGenre(imdbId);
   const streamEndpoint = `${req.protocol}://${req.get("host")}/stream`;

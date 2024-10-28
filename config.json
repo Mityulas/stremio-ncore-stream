@@ -1,12 +1,12 @@
 {
-	"download_dir": "/home/logon212594292/torrent",
+	"download_dir": "/home/home/torrent",
 	"ncore": {
 		"url": "https://ncore.pro",
 		"username": "",
 		"password": "",
 		"delete_torrents_after_hitnrun": {
-			"enabled": false,
-			"cron": "* * * * *"
+			"enabled": true,
+			"cron": "0 5 * * *"
 		}
 	},
 	"users": [
@@ -17,7 +17,7 @@
 			"preferences": {
 				"first_preferred_lang": "Hungarian",
 				"second_preferred_lang": "English",
-				"preferred_resolutions": ["480P"]
+				"preferred_resolutions": ["480P", "720P", "1080P"]
 			}
 		}
 	],

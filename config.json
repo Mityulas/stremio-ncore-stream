@@ -11,8 +11,8 @@
 	},
 	"users": [
 		{
-			"username": "McLosh",
-			"password": "asdasdasd",
+			"username": "user",
+			"password": "user",
 			"role": "admin",
 			"preferences": {
 				"first_preferred_lang": "Hungarian",

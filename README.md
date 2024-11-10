@@ -5,6 +5,9 @@
 
 
 5, npm install typescript -g
+npm install pm2 -g
+pm2 start pnpm -- run start
+pm2 startup
 
 
 

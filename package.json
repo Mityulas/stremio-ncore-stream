@@ -18,7 +18,7 @@
     "@types/fs-extra": "^11.0.4",
     "@types/jsdom": "^21.1.6",
     "@types/localtunnel": "^2.0.4",
-    "@types/node": "^20.11.20",
+    "@types/node": "^22.7.7",
     "@types/node-cron": "^3.0.11",
     "@types/set-cookie-parser": "^2.4.7",
     "@types/stremio-addon-sdk": "^1.6.11",

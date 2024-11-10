@@ -1,5 +1,13 @@
 # Stremio NCore Stream
 
+1, git clone https://github.com/Mityulas/stremio-ncore-stream.git
+2, Config file: ncore password és letöltési könyvát átírása
+
+
+5, npm install typescript -g
+
+
+
 This self-hostable addon enables [Stremio](https://www.stremio.com/) to stream movies and shows from torrents. Works with both public and private trackers through [Jackett](https://github.com/Jackett/Jackett) and built-in scrapers. It uses [WebTorrent](https://github.com/webtorrent/webtorrent) under the hood.
 
 ![image](https://github.com/nyakaspeter/stremio-torrent-stream/assets/43880678/42040b81-2bf5-43f0-b827-9d62c3a1d79c)
